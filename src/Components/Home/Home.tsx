@@ -1,92 +1,59 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './Home.css';
-import Header from "../Header/Header"
+import Header from '../Header/Header';
+import { Link } from 'react-router-dom';
+
+interface Genre {
+  genre: {
+    name: string;
+    id: string;
+  };
+}
 
 interface Movie {
   id: number;
   name: string;
-  image: string;
-  description: string;
-  ranking: string
-  category: string
-  origin: string
+  poster_image: string;
+  score: string;
+  genres: Genre[];
 }
 
-const moviesData: Movie[] = [
-  {
-    id: 1,
-    name: 'Película 1',
-    image: "https://cl.buscafs.com/www.tomatazos.com/public/uploads/images/170592/170592.jpg",
-    description: 'Descripción de la película 1.',
-    ranking: "80/100",
-    category: "Action, Adventures, Drama",
-    origin: "USA, 2018"
-  },
-  {
-    id: 2,
-    name: 'Película 2',
-    image: "https://static.posters.cz/image/350/posters/pulp-fiction-cover-i1288.jpg",
-    description: 'Descripción de la película 2.',
-    ranking: "80/100",
-    category: "Action, Adventures, Drama",
-    origin: "USA, 2018"
-  },
-  {
-    id: 3,
-    name: 'Película 3',
-    image: 'https://www.mubis.es/media/users/2514/306037/te-gustan-las-peliculas-de-terror-poster-de-scream-la-original-l_cover.jpg',
-    description: 'Descripción de la película 3.',
-    ranking: "80/100",
-    category: "Action, Adventures, Drama",
-    origin: "USA, 2018"
-  },
-  {
-    id: 4,
-    name: 'Película 4',
-    image: 'https://www.posterscine.com/media/catalog/product/cache/1c91d037a1f0ef180108abb0973795cc/o/p/oppenheimer_poster.png',
-    description: 'Descripción de la película 4.',
-    ranking: "80/100",
-    category: "Action, Adventures, Drama",
-    origin: "USA, 2018"
-  },
-];
-
 const Home: React.FC = () => {
+  const [moviesData, setMoviesData] = useState<Movie[]>([]);
+
+  useEffect(() => {
+    // Realizar la solicitud a la API
+    fetch('http://localhost:4001/movie') 
+      .then((response) => response.json())
+      .then((data) => setMoviesData(data))
+      .catch((error) => console.error('Error fetching data:', error));
+  }, []);
+
   return (
     <div>
-         <Header />
-      <h1 className='home-title'>List Of Movies</h1>
-      <div className='list-of-movies'>
-      <section className="movie-grid">
-        {moviesData.map((movie) => (
-          <div key={movie.id} className="movie-card">
-            <img
-              src={movie.image}
-              alt={movie.name}
-              className="movie-poster"
-            />
-            <p>{movie.origin}</p>
-            <h2>{movie.name}</h2>
-            <p>IMDb {movie.ranking}</p>
-            <p>{movie.category}</p>
-          </div>
-        ))}
-      </section>
-      <section className="movie-grid">
-        {moviesData.map((movie) => (
-          <div key={movie.id} className="movie-card">
-            <img
-              src={movie.image}
-              alt={movie.name}
-              className="movie-poster"
-            />
-            <p>{movie.origin}</p>
-            <h2>{movie.name}</h2>
-            <p>IMDb {movie.ranking}</p>
-            <p>{movie.category}</p>
-          </div>
-        ))}
-      </section>
+      <Header />
+      <h1 className="home-title">List Of Movies</h1>
+      <div className="list-of-movies">
+        <section className="movie-grid">
+          {moviesData.map((movie) => (
+            <Link to={`/movie/${movie.id}`} key={movie.id} className="movie-link">
+              <div key={movie.id} className="movie-card">
+                <img src={movie.poster_image} alt={movie.name} className="movie-poster" />
+                <h2>{movie.name}</h2>
+                <p>IMDb {movie.score}</p>
+                <p>
+                  {movie.genres.map((genreObj, index) => (
+                  <span key={index}>
+                  {typeof genreObj === 'string' ? genreObj : (genreObj.genre && genreObj.genre.name) || ''}
+                  {index < movie.genres.length - 1 ? ', ' : ''}
+                  </span>
+                    ))}
+                </p>    
+
+              </div>
+            </Link>
+          ))}
+        </section>
       </div>
     </div>
   );

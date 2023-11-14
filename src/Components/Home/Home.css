@@ -4,6 +4,7 @@ body {
     align-items: center;
     justify-content: center;
     height: auto;
+    text-decoration: none;
 }
 
 .home-title{
@@ -12,6 +13,9 @@ body {
     color: rgb(61, 61, 61);
 }
 
+a.movie-link{
+  text-decoration: none;
+}
 
 .movie-grid {
     display: grid;
@@ -20,17 +24,22 @@ body {
     justify-content: center;
     padding-top: 2vh;
     margin-bottom: 2vh;
+    text-decoration: none;
   }
   
   .movie-card {
     text-align: center;
     border: 1px solid #ddd;
     padding: 10px;
+    text-decoration: none;
+    color: black;
+    list-style: none;
+    text-decoration: none;
   }
   
   .movie-poster {
     width: 100%;
-    max-width: 200px;
-    height: 40vh;
+    max-width: 25vh;
+    height: 40vh
   }
   
