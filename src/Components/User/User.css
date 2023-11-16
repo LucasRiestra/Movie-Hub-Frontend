@@ -1,0 +1,65 @@
+
+.user-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 100vh;
+    margin: 20px; 
+    padding: 20px;
+    margin-top: 6vh;
+  }
+  
+  
+  .user-icon {
+    font-size: 20vh;
+    margin-bottom: 10px;
+  }
+  
+  .user-profile {
+    border-radius: 50%;
+    width: 30vh;
+    height: 30vh;
+    object-fit: cover;
+    margin-bottom: 10px;
+  }
+  
+  .user-info {
+    font-size: 1.2em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .user-name{
+    font-size: 6vh;
+  }
+
+  .user-email{
+    font-size: 6vh;
+  }
+  
+  .edit-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    margin-top: 10px;
+    cursor: pointer;
+  }
+ 
+  .go-back-button{
+        color: aliceblue;
+        border-radius: 20px;
+        border: 1px solid transparent;
+        
+        font-size: 1em;
+        font-weight: 500;
+        font-family: inherit;
+        background-color: #1a1a1a;
+        cursor: pointer;
+        transition: border-color 0.25s;
+        margin-top: 2vh;
+      }
