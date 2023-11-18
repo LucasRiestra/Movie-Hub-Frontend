@@ -24,8 +24,7 @@ const User: React.FC = () => {
   };
 
   const handleSaveChanges = () => {
-    // Lógica para guardar los cambios aquí
-    // Puedes utilizar editedName y editedEmail
+    
     closeEditModal();
   };
 

@@ -1,57 +1,51 @@
-import React, { useEffect, useState } from 'react';
-import "./AddMovieModal.css"
-import { useUserContext } from '../../utils/useUserContext';
-import { addMovieToUser } from '../../Services/user.services';
-import { useAuth0 } from '@auth0/auth0-react';
-import { getUserByEmail } from '../../Services/user.services';
-import { UserType, userContext } from '../../Context/user.context';
+import React, { useState, useEffect } from 'react';
+import './UpdateMovieModal.css';
 
+interface UpdateMovieModalProps {
+    isOpen: boolean;
+    onRequestClose: () => void;
+    onCloseAndUpdateMovie: (updatedMovieData: MovieData | Movie | null) => void;
+    initialMovieData: MovieData;
+    selectedMovie: Movie | null;
+  }
 
-interface AddMovieModalProps {
-  isOpen: boolean;
-  onRequestClose: () => void;
-  onCloseAndAddMovie: (movieData: MovieData) => void;
-}
+  interface Movie {
+    id: number;
+    name: string;
+    poster_image: string;
+    score: string;
+    genres: Genre[];
+  }
+
+  interface Genre {
+    genre: {
+      name: string;
+      id: string;
+    };
+  }
 
 export interface MovieData {
   name: string;
   poster_image: string;
   score: string;
-  genres: []; 
+  genres: string[];
 }
 
-const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onRequestClose, onCloseAndAddMovie }) => {
-  const { user, getAccessTokenSilently } = useAuth0();
-  const { setCurrentLoggedUser } = useUserContext();
-  const [movieData, setMovieData] = useState<MovieData>({
-    name: '',
-    poster_image: '',
-    score: '',
-    genres: [],
-  });
+const UpdateMovieModal: React.FC<UpdateMovieModalProps> = ({
+    isOpen,
+    onRequestClose,
+    onCloseAndUpdateMovie,
+    initialMovieData,
+    selectedMovie,
+}) => {
+  const [movieData, setMovieData] = useState<MovieData>(initialMovieData);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (user?.email) {
-          const userEmail = user.email;
-          const userData = await getUserByEmail(getAccessTokenSilently, userEmail);
-          console.log(userData);
+    setMovieData(initialMovieData);
+  }, [initialMovieData]);
 
-          // Asigna userData a currentUser en el contexto
-          setCurrentLoggedUser(userData as UserType);
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    };
-
-    fetchData();
-  }, [user, getAccessTokenSilently, setCurrentLoggedUser]);
-  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-  
     setMovieData((prevData) => ({
       ...prevData,
       [name]: name === 'genres' ? value.split(',') : value,
@@ -60,7 +54,6 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onRequestClose, o
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
-
     setMovieData((prevData) => ({
       ...prevData,
       poster_image: file ? URL.createObjectURL(file) : '',
@@ -69,51 +62,49 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onRequestClose, o
 
   const handleSaveMovie = async () => {
     try {
-      if (!user || !user.email) {
-        console.error('User or user email is undefined.');
-        return;
-      }
-  
-      const userByEmail = await getUserByEmail(getAccessTokenSilently, user.email);
-  
-      if (!userByEmail) {
-        console.error('Error fetching user by email');
-        return;
-      }
-  
-      const newMovie = await addMovieToUser(
-        getAccessTokenSilently,
-        userByEmail.id,
-        {
+        if (!movieData.name || !movieData.poster_image || !movieData.score || movieData.genres.length === 0) {
+            console.error('Invalid movie data');
+            return;
+          }
+
+          if (!selectedMovie) {
+            console.error('No movie selected');
+            return;
+          }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}movie/${selectedMovie?.id || ''}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           ...movieData,
           genres: movieData.genres.map((genre: string) => ({ name: genre })),
-        }
-      );
+        }),
+      });
   
-      if (newMovie) {
-        onCloseAndAddMovie(newMovie);
+      if (response.ok) {
+        const updatedMovie = await response.json();
+        onCloseAndUpdateMovie(updatedMovie); 
         onRequestClose();
         setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+            window.location.reload();
+          }, 1000);
       } else {
-        console.error('Error at save movie');
+        console.error('Error updating movie:', response.statusText);
       }
     } catch (error) {
-      console.error('Error in the process', error);
-    };
+      console.error('Error updating movie:', error);
+    }
   };
-  
-  
 
-  console.log('currentUser in AddMovieModal:', user);
-  
+
   return (
     <div className={`modal fade ${isOpen ? 'show' : ''}`} style={{ display: isOpen ? 'block' : 'none' }}>
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Add Movie</h5>
+            <h5 className="modal-title">Update Movie</h5>
             <button type="button" className="close" data-dismiss="modal" onClick={onRequestClose}>
               <span>&times;</span>
             </button>
@@ -183,5 +174,4 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onRequestClose, o
   );
 };
 
-export default AddMovieModal;
-
+export default UpdateMovieModal;

@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, {  useEffect, useState } from 'react';
 import './Home.css';
 import Header from '../Header/Header';
 import { Link } from 'react-router-dom';
 import Footer from '../Footer/Footer';
 import { useAuth0 } from '@auth0/auth0-react';
+import UpdateMovieModal from './UpdateMovieModal';
+import { MovieData } from './UpdateMovieModal';
+import { useUserContext } from '../../utils/useUserContext';
+import { createUser, getUserByEmail } from '../../Services/user.services';
+import { UserType } from '../../Context/user.context';
 
 interface Genre {
   genre: {
@@ -20,30 +25,94 @@ interface Movie {
   genres: Genre[];
 }
 
+
+
 const Home: React.FC = () => {
-  const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const { user, getAccessTokenSilently } = useAuth0();
   const [moviesData, setMoviesData] = useState<Movie[]>([]);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const { setCurrentLoggedUser } = useUserContext();
+  const [auth0User, setAuth0User] = useState<any>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (isAuthenticated && user) {
-        try {
-          const token = await getAccessTokenSilently();
-          const response = await fetch(`${import.meta.env.VITE_API_URL}movie`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const data = await response.json();
-          setMoviesData(data);
-        } catch (error) {
-          console.error('Error fetching user movies:', error);
-        }
-      }
-    };
+    (async function fetchUserData() {
+      try {
+        if (user?.email) {
+          const userEmail = user.email;
+          const userData = await getUserByEmail(getAccessTokenSilently, userEmail);
+          setCurrentLoggedUser(userData as UserType);
+          setAuth0User(user);
 
-    fetchData();
-  }, [isAuthenticated, user, getAccessTokenSilently]);
+          const userId = userData.id;
+
+          const token = await getAccessTokenSilently();
+          const response = await fetch(`${import.meta.env.VITE_API_URL}movie/user/${userId}`, {
+            method: "GET",
+            headers: {
+              authorization: `Bearer ${token}`,
+              "Content-type": "application/json; charset=UTF-8"
+            }
+          });
+
+          if (response.ok) {
+            const userMovies = await response.json();
+            setMoviesData(userMovies);
+            console.log('Movies Data:', userMovies);
+          } else {
+            console.error(`Error fetching user movies: ${response.statusText}`);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    })();
+  }, [user]);
+
+  console.log('auth0User in Home:', auth0User);
+  console.log('user in Home:', user);
+
+  const handleDelete = async (movieId: number) => {
+    try {
+      const token = await getAccessTokenSilently();
+      const response = await fetch(`${import.meta.env.VITE_API_URL}movie/${movieId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        setMoviesData((prevMovies) => prevMovies.filter((movie) => movie.id !== movieId));
+      } else {
+        console.error('Error deleting movie:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error deleting movie:', error);
+    }
+  };
+
+  const handleUpdate = (movieId: number) => {
+    const movieToUpdate = moviesData.find((movie) => movie.id === movieId);
+    if (movieToUpdate) {
+      setSelectedMovie(movieToUpdate);
+      setIsUpdateModalOpen(true);
+    }
+  };
+
+  const handleUpdateModalClose = () => {
+    setIsUpdateModalOpen(false);
+    setSelectedMovie(null);
+  };
+
+  const handleUpdateMovie = (updatedMovieData: MovieData | Movie | null) => {
+    
+    if (updatedMovieData && 'id' in updatedMovieData) {
+      console.log('Updating movie:', updatedMovieData);
+    } else {
+      console.log('Movie update canceled.');
+    }
+  };
 
   return (
     <div>
@@ -53,8 +122,8 @@ const Home: React.FC = () => {
         <section className="movie-grid">
           {moviesData.length > 0 ? (
             moviesData.map((movie) => (
-              <Link to={`/movie/${movie.id}`} key={movie.id} className="movie-link">
-                <div key={movie.id} className="movie-card">
+              <div key={movie.id} className="movie-card">
+                <Link to={`/movie/${movie.id}`} className="movie-link">
                   <img src={movie.poster_image} alt={movie.name} className="movie-poster" />
                   <h2>{movie.name}</h2>
                   <p>IMDb {movie.score}</p>
@@ -66,18 +135,42 @@ const Home: React.FC = () => {
                       </span>
                     ))}
                   </p>
+                </Link>
+                <div className='update-and-delete-buttons'>
+                  <button className='update-button' onClick={() => handleDelete(movie.id)}>
+                    Delete
+                  </button>
+                  <button className='update-button' onClick={() => handleUpdate(movie.id)}>
+                    Update
+                  </button>
                 </div>
-              </Link>
+              </div>
             ))
           ) : (
             <h3>No movies available. Add your favorite movies, please!</h3>
           )}
-          <div className="movie-buttons">
-           
-          </div>
         </section>
       </div>
       <Footer />
+      {isUpdateModalOpen && (
+        <UpdateMovieModal
+        isOpen={isUpdateModalOpen}
+        onRequestClose={handleUpdateModalClose}
+        onCloseAndUpdateMovie={handleUpdateMovie}
+        initialMovieData={selectedMovie ? {
+          name: selectedMovie.name,
+          poster_image: selectedMovie.poster_image,
+          score: selectedMovie.score,
+          genres: selectedMovie.genres.map(genre => genre.genre.name),
+        } : {
+          name: '',
+          poster_image: '',
+          score: '',
+          genres: [],
+        }}
+        selectedMovie={selectedMovie}
+      />
+      )}
     </div>
   );
 };

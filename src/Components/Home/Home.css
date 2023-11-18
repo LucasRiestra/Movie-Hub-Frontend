@@ -32,6 +32,7 @@ h3{
     text-decoration: none;
     margin-left: 2vh;
     margin-right: 2vh;
+    color: #333;
   }
   
   .movie-card {
@@ -49,3 +50,23 @@ h3{
     max-width: 25vh;
     height: 40vh
   }
+
+  .update-button{
+    border-radius: 5vh;
+    background-color: #333;
+    color: whitesmoke;
+    box-shadow: 5px 5px 10px rgb(35, 35, 50);
+    margin: 1vh;
+  }
+
+  .delete-button{
+    border-radius: 5vh;
+    background-color: #333;
+    color: whitesmoke;
+    box-shadow: 5px 5px 10px rgb(35, 35, 50);
+    margin: 1vh;
+  }
+
+.movie-link{
+  color: #333;
+}
