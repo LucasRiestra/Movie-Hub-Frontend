@@ -4,7 +4,8 @@ import { useUserContext } from '../../utils/useUserContext';
 import { addMovieToUser } from '../../Services/user.services';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserByEmail } from '../../Services/user.services';
-import { UserType, userContext } from '../../Context/user.context';
+import { UserType } from '../../Context/user.context';
+import { uploadRequest } from '../../Services/request.services';
 
 
 interface AddMovieModalProps {
@@ -58,28 +59,41 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onRequestClose, o
     }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files && e.target.files[0];
+  const [file, setfile] = useState<File>()
+  console.log(file)
 
-    setMovieData((prevData) => ({
-      ...prevData,
-      poster_image: file ? URL.createObjectURL(file) : '',
-    }));
-  };
+  const handleFileInput = async (event: React.ChangeEvent<HTMLInputElement> | null) => {
+    if (event && event.target && event.target.files !== null) {
+        const file: File = event.target.files[0];
+        setfile(file);
+
+        const cloudinaryImageUrl = await uploadRequest(file);
+
+        if (cloudinaryImageUrl) {
+            setMovieData((prevData) => ({
+                ...prevData,
+                poster_image: cloudinaryImageUrl,
+            }));
+        }
+    }
+};
 
   const handleSaveMovie = async () => {
+   
     try {
       if (!user || !user.email) {
         console.error('User or user email is undefined.');
         return;
       }
-  
+
       const userByEmail = await getUserByEmail(getAccessTokenSilently, user.email);
   
       if (!userByEmail) {
         console.error('Error fetching user by email');
         return;
       }
+
+      const cloudinaryImageUrl = await uploadRequest(file);
   
       const newMovie = await addMovieToUser(
         getAccessTokenSilently,
@@ -87,6 +101,7 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onRequestClose, o
         {
           ...movieData,
           genres: movieData.genres.map((genre: string) => ({ name: genre })),
+          poster_image: cloudinaryImageUrl,
         }
       );
   
@@ -95,7 +110,7 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onRequestClose, o
         onRequestClose();
         setTimeout(() => {
           window.location.reload();
-        }, 1000);
+        }, 100);
       } else {
         console.error('Error at save movie');
       }
@@ -103,9 +118,6 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onRequestClose, o
       console.error('Error in the process', error);
     };
   };
-  
-  
-
   console.log('currentUser in AddMovieModal:', user);
   
   return (
@@ -134,12 +146,12 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onRequestClose, o
               <div className="form-group">
                 <label htmlFor="poster_image">Poster Image</label>
                 <input
-                  type="file"
+                  type={"file"}
                   className="form-control"
                   id="poster_image"
                   name="poster_image"
                   accept="image/*"
-                  onChange={handleImageChange}
+                  onChange={handleFileInput}
                 />
                 {movieData.poster_image && (
                   <img src={movieData.poster_image} alt="Selected" style={{ maxWidth: '100%', marginTop: '10px' }} />

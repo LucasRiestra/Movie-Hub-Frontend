@@ -7,7 +7,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import UpdateMovieModal from './UpdateMovieModal';
 import { MovieData } from './UpdateMovieModal';
 import { useUserContext } from '../../utils/useUserContext';
-import { createUser, getUserByEmail } from '../../Services/user.services';
+import { getUserByEmail } from '../../Services/user.services';
 import { UserType } from '../../Context/user.context';
 
 interface Genre {
