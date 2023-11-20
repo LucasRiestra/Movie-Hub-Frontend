@@ -20,6 +20,8 @@ body {
   font-size: 20vh;
   color: #436078;
   text-align: center;
+  font-family: 'Libre Bodoni', serif;
+  text-shadow: 4px 4px 10px black ;
 }
 
 .register-link {

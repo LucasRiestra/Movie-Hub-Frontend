@@ -6,25 +6,30 @@ movie-detail-container {
     text-align: center;
     height: 100vh;
     margin-top: 5vh;
+    color: white;
   }
 
   h1{
     font-size: 20vh;
+    color: white;
   }
   
   .movie-detail-content {
     text-align: center;
     margin-top: 10vh;
+    color: white;
   }
 
   p{
     font-size: 2vh;
+    color: white;
   }
   
   .movie-detail-img {
     max-width: 100%;
     height: 70vh;
     padding-bottom: 0;
+    border-radius: 4vh;
     
   }
 
